@@ -2,11 +2,13 @@ package top.wxip.wauto.app
 
 class WechatID {
     var msgItem: String = ""
-    var msgItemTitle: String = ""
     var msgItemUnread: String = ""
-    var msgItemData: String = ""
 
     var msgDetailItem: String = ""
+    var msgDetailTitle: String = ""
     var msgDetailSender: String = ""
-    var msgDetailData: String = ""
+    var msgDetailTextData: String = ""
+
+    var msgDetailGeoData: String = ""
+    var msgDetailGeoDetailData: String = ""
 }

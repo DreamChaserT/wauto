@@ -5,12 +5,15 @@ class Const {
         const val wechatPackageName = "com.tencent.mm"
         val wechatIDMap = mapOf("8.0.43" to WechatID().apply {
             msgItem = "com.tencent.mm:id/cj1"
-            msgItemTitle = "com.tencent.mm:id/kbq"
             msgItemUnread = "com.tencent.mm:id/o_u"
-            msgItemData = "com.tencent.mm:id/ht5"
+
             msgDetailItem = "com.tencent.mm:id/bn1"
+            msgDetailTitle = "com.tencent.mm:id/obn"
             msgDetailSender = "com.tencent.mm:id/brc"
-            msgDetailData = "com.tencent.mm:id/bkl"
+            msgDetailTextData = "com.tencent.mm:id/bkl"
+
+            msgDetailGeoData = "com.tencent.mm:id/bp8"
+            msgDetailGeoDetailData = "com.tencent.mm:id/bp6"
         })
         var currentWechatID: WechatID = WechatID()
     }
