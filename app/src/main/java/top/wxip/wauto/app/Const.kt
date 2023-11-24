@@ -9,7 +9,7 @@ class Const {
 
             msgDetailItem = "com.tencent.mm:id/bn1"
             msgDetailTitle = "com.tencent.mm:id/obn"
-            msgDetailSender = "com.tencent.mm:id/brc"
+            msgDetailSender = "com.tencent.mm:id/bk1"
             msgDetailTextData = "com.tencent.mm:id/bkl"
 
             msgDetailGeoData = "com.tencent.mm:id/bp8"

@@ -29,8 +29,24 @@ class AccessibilityUtils {
             return ""
         }
 
+        private fun getContentDesc(node: AccessibilityNodeInfo?): String {
+            if (null != node) {
+                val text = node.contentDescription
+                if (text is SpannableString) {
+                    return text.toString()
+                } else if (text is String) {
+                    return text
+                }
+            }
+            return ""
+        }
+
         fun getTextByID(root: AccessibilityNodeInfo, id: String): String {
             return getText(findOneByID(root, id))
+        }
+
+        fun getContentDescByID(root: AccessibilityNodeInfo, id: String): String {
+            return getContentDesc(findOneByID(root, id))
         }
     }
 }

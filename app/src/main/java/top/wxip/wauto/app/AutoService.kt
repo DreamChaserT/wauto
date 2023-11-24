@@ -6,11 +6,16 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.CacheDiskStaticUtils
+import com.blankj.utilcode.util.EncodeUtils
 import com.blankj.utilcode.util.FileUtils
+import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.LogUtils
-import java.lang.NumberFormatException
-import java.util.Comparator
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlin.concurrent.thread
+
 
 class AutoService : AccessibilityService() {
 
@@ -70,17 +75,19 @@ class AutoService : AccessibilityService() {
                                 // 等待别人消息发送完
                                 while (tries < 10) {
                                     firstLst = readMsgDetailList(rootInActiveWindow)
+                                    Thread.sleep(500)
                                     secondLst = readMsgDetailList(rootInActiveWindow)
                                     if (firstLst.size == secondLst.size) {
                                         break
                                     }
+                                    LogUtils.i("数据不对称,再试一次")
                                     tries++
                                 }
                                 // 去除已经收到的消息
                                 val targetLst = filterPreviousMsg(secondLst)
+                                uploadWechatMsg(targetLst)
                                 for (wechatMsg in targetLst) {
                                     var logStr = "${wechatMsg.msgDetailTitle}\n" +
-                                            "${wechatMsg.msgDetailTitle}\n" +
                                             "${wechatMsg.msgDetailSender}\n"
                                     if ("pic" != wechatMsg.msgDetailType) {
                                         logStr += wechatMsg.msgDetailData
@@ -122,7 +129,11 @@ class AutoService : AccessibilityService() {
         val msgDetailList = AccessibilityUtils.findByID(root, Const.currentWechatID.msgDetailItem)
         for (msgDetail in msgDetailList) {
             val msgDetailSender =
-                AccessibilityUtils.getTextByID(msgDetail, Const.currentWechatID.msgDetailSender)
+                AccessibilityUtils.getContentDescByID(
+                    msgDetail,
+                    Const.currentWechatID.msgDetailSender
+                )
+                    .replace("头像", "")
             // text
             val textData =
                 AccessibilityUtils.getTextByID(msgDetail, Const.currentWechatID.msgDetailTextData)
@@ -156,7 +167,7 @@ class AutoService : AccessibilityService() {
                     )
                     if (null != picDownload) {
                         if (picDownload.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                            Thread.sleep(500)
+                            Thread.sleep(1000)
                             // 去文件夹下面寻找保存的图片
                             LogUtils.i("开始寻找图片")
                             val files =
@@ -166,7 +177,8 @@ class AutoService : AccessibilityService() {
                                 )
                             if (!files.isNullOrEmpty()) {
                                 val targetFile = files[files.size - 1]
-                                picData = String(targetFile.readBytes())
+                                LogUtils.i("找到图片:" + targetFile.path)
+                                picData = EncodeUtils.base64Encode2String(targetFile.readBytes())
                                 targetFile.delete()
                             }
                         }
@@ -225,6 +237,21 @@ class AutoService : AccessibilityService() {
             return result
         }
         return lst
+    }
+
+    private fun uploadWechatMsg(lst: List<WechatMsg>) {
+        try {
+            val client = OkHttpClient()
+            val reqBody = GsonUtils.toJson(lst).toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("http://127.0.0.1:8088/upload")
+                .post(reqBody)
+                .build()
+            client.newCall(request).execute()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LogUtils.e("发送请求出错")
+        }
     }
 
 }
