@@ -15,7 +15,7 @@ class Const {
             msgDetailGeoData = "com.tencent.mm:id/bp8"
             msgDetailGeoDetailData = "com.tencent.mm:id/bp6"
 
-            msgDetailPicItem = "com.tencent.mm:id/bkg"
+            msgDetailPicItem = "com.tencent.mm:id/bkm"
             msgDetailPicDownload = "com.tencent.mm:id/d2y"
         })
         var currentWechatID: WechatID = WechatID()

@@ -147,7 +147,7 @@ class AutoService : AccessibilityService() {
             if (null != picItem) {
                 // 存在图片,点开
                 var picData = ""
-                if (picItem.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                if (picItem.parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
                     Thread.sleep(500)
                     // 点击下载按钮
                     val picDownload = AccessibilityUtils.findOneByID(
