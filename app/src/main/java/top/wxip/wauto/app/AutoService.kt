@@ -1,12 +1,15 @@
 package top.wxip.wauto.app
 
 import android.accessibilityservice.AccessibilityService
+import android.os.Environment
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.CacheDiskStaticUtils
+import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.LogUtils
 import java.lang.NumberFormatException
+import java.util.Comparator
 import kotlin.concurrent.thread
 
 class AutoService : AccessibilityService() {
@@ -67,8 +70,6 @@ class AutoService : AccessibilityService() {
                                 // 等待别人消息发送完
                                 while (tries < 10) {
                                     firstLst = readMsgDetailList(rootInActiveWindow)
-                                    rootInActiveWindow.refresh()
-                                    Thread.sleep(500)
                                     secondLst = readMsgDetailList(rootInActiveWindow)
                                     if (firstLst.size == secondLst.size) {
                                         break
@@ -78,11 +79,21 @@ class AutoService : AccessibilityService() {
                                 // 去除已经收到的消息
                                 val targetLst = filterPreviousMsg(secondLst)
                                 for (wechatMsg in targetLst) {
-                                    LogUtils.i(wechatMsg.toString())
+                                    var logStr = "${wechatMsg.msgDetailTitle}\n" +
+                                            "${wechatMsg.msgDetailTitle}\n" +
+                                            "${wechatMsg.msgDetailSender}\n"
+                                    if ("pic" != wechatMsg.msgDetailType) {
+                                        logStr += wechatMsg.msgDetailData
+                                    } else {
+                                        logStr += wechatMsg.msgDetailData.length
+                                    }
+                                    LogUtils.i(logStr)
                                 }
 
                                 if (!performGlobalAction(GLOBAL_ACTION_BACK)) {
                                     LogUtils.e("回退失败")
+                                } else {
+                                    LogUtils.i("回退到消息列表")
                                 }
                             } else {
                                 LogUtils.e("无法打开消息列表")
@@ -129,6 +140,57 @@ class AutoService : AccessibilityService() {
             if (geoData.isNotBlank() || geoDetail.isNotBlank()) {
                 result.add(WechatMsg(msgDetailTitle, msgDetailSender, "geo", "$geoData $geoDetail"))
                 continue
+            }
+            // pic
+            val picItem =
+                AccessibilityUtils.findOneByID(msgDetail, Const.currentWechatID.msgDetailPicItem)
+            if (null != picItem) {
+                // 存在图片,点开
+                var picData = ""
+                if (picItem.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                    Thread.sleep(500)
+                    // 点击下载按钮
+                    val picDownload = AccessibilityUtils.findOneByID(
+                        rootInActiveWindow,
+                        Const.currentWechatID.msgDetailPicDownload
+                    )
+                    if (null != picDownload) {
+                        if (picDownload.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                            Thread.sleep(500)
+                            // 去文件夹下面寻找保存的图片
+                            LogUtils.i("开始寻找图片")
+                            val files =
+                                FileUtils.listFilesInDir(
+                                    Environment.getExternalStorageDirectory().path + "/Pictures/WeiXin",
+                                    Comparator.naturalOrder()
+                                )
+                            if (!files.isNullOrEmpty()) {
+                                val targetFile = files[files.size - 1]
+                                picData = String(targetFile.readBytes())
+                                targetFile.delete()
+                            }
+                        }
+                    } else {
+                        LogUtils.e("找不到图片下载按钮")
+                    }
+                    Thread.sleep(500)
+                    if (!performGlobalAction(GLOBAL_ACTION_BACK)) {
+                        LogUtils.e("回退失败")
+                    } else {
+                        LogUtils.i("图片回退中")
+                    }
+                    Thread.sleep(500)
+                } else {
+                    LogUtils.e("无法点开图片")
+                }
+                if (picData.isNotBlank()) {
+                    result.add(
+                        WechatMsg(
+                            msgDetailTitle, msgDetailSender, "pic", picData
+                        )
+                    )
+                    continue
+                }
             }
         }
         return result

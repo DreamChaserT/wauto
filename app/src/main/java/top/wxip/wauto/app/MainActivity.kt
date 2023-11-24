@@ -3,18 +3,21 @@ package top.wxip.wauto.app
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.text.TextUtils.SimpleStringSplitter
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.AppUtils
-import com.blankj.utilcode.util.ThreadUtils
 
 class MainActivity : AppCompatActivity() {
 
+    @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         val ctx = applicationContext;
@@ -46,7 +49,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             val accessibilityOK = checkAccessibility(ctx)
-            if (!accessibilityOK) {
+            if (!Environment.isExternalStorageManager()) {
+                showShort(ctx, "请允许访问所有文件")
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent)
+            } else if (!accessibilityOK) {
                 // 未开启无障碍
                 showShort(ctx, "请打开无障碍模式")
                 try {

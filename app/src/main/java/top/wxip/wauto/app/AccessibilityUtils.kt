@@ -5,7 +5,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 
 class AccessibilityUtils {
     companion object {
-        private fun findOneByID(root: AccessibilityNodeInfo, id: String): AccessibilityNodeInfo? {
+        fun findOneByID(root: AccessibilityNodeInfo, id: String): AccessibilityNodeInfo? {
             val lst = findByID(root, id)
             if (lst.isNotEmpty()) {
                 return lst[0]

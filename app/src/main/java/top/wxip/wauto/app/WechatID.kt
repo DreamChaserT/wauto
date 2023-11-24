@@ -11,4 +11,7 @@ class WechatID {
 
     var msgDetailGeoData: String = ""
     var msgDetailGeoDetailData: String = ""
+
+    var msgDetailPicItem: String = ""
+    var msgDetailPicDownload: String = ""
 }
